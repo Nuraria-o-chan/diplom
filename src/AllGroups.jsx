@@ -26,26 +26,26 @@ const AllGroups = () => {
         let R = groupRange.s.r + 2;
         while (true) {
           // Собираем данные для текущей пары
-          let cellNumber = { c: groupRange.s.c + 1, r: R }; // Изменили const на let
-          let dataRa = XLSX.utils.encode_cell(cellNumber); // Изменили const на let
+          let cellNumber = { c: groupRange.s.c + 1, r: R };
+          let dataRa = XLSX.utils.encode_cell(cellNumber);
           const para = new Para();
 
           para.number = worksheet[dataRa]?.v || "";
 
-          cellNumber = { c: groupRange.s.c + 3, r: R }; // Изменили const на let
-          dataRa = XLSX.utils.encode_cell(cellNumber); // Изменили const на let
+          cellNumber = { c: groupRange.s.c + 3, r: R };
+          dataRa = XLSX.utils.encode_cell(cellNumber);
           para.name = worksheet[dataRa]?.v || "";
 
-          cellNumber = { c: groupRange.s.c + 2, r: R }; // Изменили const на let
-          dataRa = XLSX.utils.encode_cell(cellNumber); // Изменили const на let
+          cellNumber = { c: groupRange.s.c + 2, r: R };
+          dataRa = XLSX.utils.encode_cell(cellNumber);
           para.disciplina = worksheet[dataRa]?.v || "";
 
-          cellNumber = { c: groupRange.s.c + 4, r: R }; // Изменили const на let
-          dataRa = XLSX.utils.encode_cell(cellNumber); // Изменили const на let
+          cellNumber = { c: groupRange.s.c + 4, r: R };
+          dataRa = XLSX.utils.encode_cell(cellNumber);
           para.prepod = worksheet[dataRa]?.v || "";
 
-          cellNumber = { c: groupRange.s.c + 5, r: R }; // Изменили const на let
-          dataRa = XLSX.utils.encode_cell(cellNumber); // Изменили const на let
+          cellNumber = { c: groupRange.s.c + 5, r: R };
+          dataRa = XLSX.utils.encode_cell(cellNumber);
           para.kab = worksheet[dataRa]?.v || "";
 
           // Если все данные в строке пустые, считаем, что это конец группы
@@ -56,7 +56,7 @@ const AllGroups = () => {
             !para.prepod &&
             !para.kab
           ) {
-            break; // Выходим из цикла while
+            break;
           }
 
           dataRangeValues.push(para);
