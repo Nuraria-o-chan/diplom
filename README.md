@@ -95,3 +95,4 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
         ) : (
           <div>Нет загруженных файлов!</div>
         )}
+## my cool diplom
