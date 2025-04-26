@@ -56,13 +56,22 @@ function App() {
       const worksheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[worksheetName];
 
+      function getLastUsedRow(worksheet) {
+        if (!worksheet || !worksheet["!ref"]) return 0; // Если лист пуст
+
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+        return range.e.r + 1; // +1, так как индексация с нуля
+      }
+
       //display all groups
       console.log(worksheet["!merges"].filter((x) => x["s"]["r"] === 0));
 
       const data = XLSX.utils.sheet_to_json(worksheet);
-      const mergedRange = worksheet["!merges"].filter(
-        (x) => x["s"]["r"] === 0
-      )[15];
+      const mergedRange = worksheet["!merges"]?.find((x) => x["s"]["r"] === 0);
+
+      // const mergedRange = worksheet["!merges"].filter(
+      //   (x) => x["s"]["r"] === 0
+      // )[15];
 
       // Find first merged range that starts on row 0
       // const mergedRange = worksheet["!merges"]?.find((x) => x["s"]["r"] === 0);
@@ -75,7 +84,7 @@ function App() {
       var dataRangeValues = [];
 
       /* Iterate through each element in the structure */
-      for (var R = mergedRange.s.r + 2; R <= mergedRange.e.r + 50; ++R) {
+      for (var R = mergedRange.s.r + 2; R <= getLastUsedRow(worksheet); ++R) {
         var cellNumber = { c: mergedRange.s.c + 1, r: R };
         var para = new Para();
         var dataRa = XLSX.utils.encode_cell(cellNumber);
@@ -125,9 +134,11 @@ function App() {
 
       setDataRange(dataRangeValues); // Обновляем состояние dataRangeValues
       console.log(dataRangeValues);
+
+      const lastRow = getLastUsedRow(worksheet);
+      console.log("Последняя использованная строка:", lastRow);
     }
   };
-
 
   const findDayRanges = (groupColumn, worksheet) => {
     const mergedRanges = worksheet["!merges"];
