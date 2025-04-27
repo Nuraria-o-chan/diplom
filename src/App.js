@@ -57,86 +57,66 @@ function App() {
       const worksheet = workbook.Sheets[worksheetName];
 
       function getLastUsedRow(worksheet) {
-        if (!worksheet || !worksheet["!ref"]) return 0; // Если лист пуст
-
+        if (!worksheet || !worksheet["!ref"]) return 0;
         const range = XLSX.utils.decode_range(worksheet["!ref"]);
-        return range.e.r + 1; // +1, так как индексация с нуля
+        return range.e.r + 1;
       }
 
-      //display all groups
-      console.log(worksheet["!merges"].filter((x) => x["s"]["r"] === 0));
+      const mergedRanges =
+        worksheet["!merges"]?.filter((x) => x["s"]["r"] === 0) || [];
 
-      const data = XLSX.utils.sheet_to_json(worksheet);
-      const mergedRange = worksheet["!merges"]?.find((x) => x["s"]["r"] === 0);
-
-      // const mergedRange = worksheet["!merges"].filter(
-      //   (x) => x["s"]["r"] === 0
-      // )[15];
-
-      // Find first merged range that starts on row 0
-      // const mergedRange = worksheet["!merges"]?.find((x) => x["s"]["r"] === 0);
-
-      if (!mergedRange) {
-        console.warn("No merged range found starting on row 0.");
+      if (!mergedRanges || mergedRanges.length === 0) {
+        console.warn("No merged ranges found starting on row 0.");
         return;
       }
 
-      var dataRangeValues = [];
+      const allGroups = []; // Array to store all Group objects
 
-      /* Iterate through each element in the structure */
-      for (var R = mergedRange.s.r + 2; R <= getLastUsedRow(worksheet); ++R) {
-        var cellNumber = { c: mergedRange.s.c + 1, r: R };
-        var para = new Para();
-        var dataRa = XLSX.utils.encode_cell(cellNumber);
+      mergedRanges.forEach((mergedRange) => {
+        const dataRangeValues = []; // Array to store data for *this* group
 
-        // Check if cell exists before accessing its value
-        para.number = worksheet[dataRa]?.v || "";
-        cellNumber = { c: mergedRange.s.c + 3, r: R };
-        dataRa = XLSX.utils.encode_cell(cellNumber);
+        // Get the Group Name (Date) -  assuming the merged cell is used as a header
+        const groupName =
+          worksheet[
+            XLSX.utils.encode_cell({ r: mergedRange.s.r, c: mergedRange.s.c })
+          ]?.v?.toString() || "Без названия";
 
-        // Check if cell exists before accessing its value
-        para.name = worksheet[dataRa]?.v || "";
-        cellNumber = { c: mergedRange.s.c + 2, r: R };
-        dataRa = XLSX.utils.encode_cell(cellNumber);
+        // Loop through the rows *within* this merged range
+        for (let R = mergedRange.s.r + 2; R <= getLastUsedRow(worksheet); ++R) {
+          // Adjusted starting row
+          const para = new Para();
+          // Extract values for the current 'para'
+          para.number =
+            worksheet[XLSX.utils.encode_cell({ r: R, c: mergedRange.s.c + 1 })]
+              ?.v || "";
+          para.name =
+            worksheet[XLSX.utils.encode_cell({ r: R, c: mergedRange.s.c + 2 })]
+              ?.v || "";
+          para.disciplina =
+            worksheet[XLSX.utils.encode_cell({ r: R, c: mergedRange.s.c + 3 })]
+              ?.v || "";
+          para.prepod =
+            worksheet[XLSX.utils.encode_cell({ r: R, c: mergedRange.s.c + 4 })]
+              ?.v || "";
+          para.kab =
+            worksheet[XLSX.utils.encode_cell({ r: R, c: mergedRange.s.c + 5 })]
+              ?.v || "";
+          dataRangeValues.push(para); // Add the 'para' to this group's data
+        }
 
-        // Check if cell exists before accessing its value
-        para.disciplina = worksheet[dataRa]?.v || "";
-        cellNumber = { c: mergedRange.s.c + 4, r: R };
-        dataRa = XLSX.utils.encode_cell(cellNumber);
+        // Create a Group object and push it to the allGroups array
+        const newGroup = {
+          Name: groupName,
+          paras: dataRangeValues, // Contains all 'para' data for the group
+        };
+        allGroups.push(newGroup);
+      });
+      // Update the state with all the extracted groups
+      setGroups(allGroups);
+      // Optional: set dataRange if needed, if you want all 'paras' in a single array
+      setDataRange(allGroups.flatMap((group) => group.paras));
 
-        // Check if cell exists before accessing its value
-        para.prepod = worksheet[dataRa]?.v || "";
-        cellNumber = { c: mergedRange.s.c + 5, r: R };
-        dataRa = XLSX.utils.encode_cell(cellNumber);
-
-        // Check if cell exists before accessing its value
-        para.kab = worksheet[dataRa]?.v || "";
-        dataRangeValues.push(para);
-      }
-
-      const groupName =
-        worksheet[
-          XLSX.utils.encode_cell({ r: mergedRange.s.r, c: mergedRange.s.c })
-        ]?.v?.toString() || "Без названия";
-
-      const groupColumn = mergedRange.s.c; // Столбец группы
-      const dayRangeList = findDayRanges(groupColumn + 1, worksheet);
-
-      // Создаем объект Group
-      const newGroup = {
-        Name: groupName,
-        paras: dataRangeValues,
-      };
-
-      // Устанавливаем состояние groups
-      setGroups([newGroup]); //  Заменяем setDataRange  на setGroups
-      console.log(newGroup);
-
-      setDataRange(dataRangeValues); // Обновляем состояние dataRangeValues
-      console.log(dataRangeValues);
-
-      const lastRow = getLastUsedRow(worksheet);
-      console.log("Последняя использованная строка:", lastRow);
+      console.log("All groups:", allGroups);
     }
   };
 
